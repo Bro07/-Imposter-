@@ -1,0 +1,360 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080b14">
+<title>IMPOSTER – Das Geheimnis-Spiel</title>
+<style>
+:root{--bg:#080b14;--panel:#111827;--line:#2b3851;--mint:#65e8c5;--purple:#b38aff;--text:#e5f0ff;--muted:#9eabc2}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:24px 14px;background:radial-gradient(ellipse at top,#16243a 0,#080b14 58%);color:var(--text);font-family:system-ui,sans-serif}
+main{width:min(100%,520px);margin:auto}
+.brand{text-align:center;padding:12px 0 20px}
+.eyebrow{font-size:11px;letter-spacing:4px;color:var(--purple);font-weight:800}
+h1{margin:8px 0 5px;font-size:clamp(36px,10vw,54px);letter-spacing:5px;color:var(--mint)}
+.brand p,.sub,.note{color:var(--muted)}
+.card{background:linear-gradient(145deg,#141c2cf2,#0e1422f5);border:1px solid var(--line);border-radius:22px;padding:20px;margin:14px 0}
+h2{font-size:20px;margin:0 0 6px}
+.sub{font-size:13px;margin:0 0 18px;line-height:1.5}
+label{display:block;font-size:12px;color:#e2cde0;font-weight:800;margin:15px 0 7px}
+input,select{width:100%;background:#090f1d;color:var(--text);border:1px solid #34415a;border-radius:12px;padding:13px;font:inherit}
+.namegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.btn{width:100%;border:0;border-radius:12px;padding:14px;margin-top:10px;background:var(--mint);color:#071410;font-weight:900;font-size:15px;cursor:pointer}
+.btn:disabled{opacity:.45}
+.btn.purple{background:var(--purple);color:#160c25}
+.btn.secondary{background:#202c42;color:var(--text);border:1px solid #35435d}
+.btn.random{background:#302346;color:#e8d8ff;border:1px solid #8f6ac4}
+.btn.random.active{background:var(--purple);color:#160c25}
+.note{font-size:12px;line-height:1.45;margin:8px 2px 0}
+.error{color:#ff7894;font-size:13px;min-height:18px;margin-top:9px}
+.hidden{display:none!important}
+.pill{display:inline-flex;align-items:center;gap:8px;border:1px solid #34415a;background:#0a1220;border-radius:999px;padding:7px 11px;color:var(--muted);font-size:11px;font-weight:800}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--mint)}
+.player-card{border:1px solid #2b3851;background:#0b1220;border-radius:15px;padding:13px;margin:10px 0}
+.player-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.player-head span{font-weight:800}
+.player-head small{color:var(--muted);font-size:10px}
+.reveal{margin:0;padding:11px;font-size:13px}
+.secret{margin-top:10px;padding:15px;border-radius:12px;text-align:center;background:#122b2b;border:1px solid #3d8d7d}
+.secret.imposter{background:#2b1930;border-color:#8c5aa2}
+.word{font-size:22px;font-weight:900;color:var(--mint)}
+.secret.imposter .word{color:#e0b5ff}
+.secret p{margin:8px 0 0;color:#d5deec;font-size:13px}
+.vote-option{width:100%;display:flex;justify-content:space-between;border:1px solid #34415a;border-radius:12px;padding:14px;margin:8px 0;background:#0b1220;color:var(--text);font:inherit;cursor:pointer}
+.vote-option.selected{border-color:var(--mint);background:#10252a}
+.result-mark{font-size:42px;text-align:center;margin:10px 0}
+.resultbox{padding:13px;margin:9px 0;border:1px solid #34415a;border-radius:12px;background:#0b1220;text-align:center}
+.resultbox div{color:var(--muted);font-size:11px;margin-bottom:5px}
+.resultbox strong{overflow-wrap:anywhere}
+.footer{color:#66758e;font-size:11px;text-align:center;padding:15px}
+@media(max-width:360px){.namegrid{grid-template-columns:1fr}.card{padding:16px}}
+</style>
+</head>
+<body>
+<main>
+<header class="brand">
+<div class="eyebrow">DAS GEHEIMNIS-SPIEL</div>
+<h1>IMPOSTER</h1>
+<p>Wem kannst du vertrauen?</p>
+</header>
+
+<section id="setup" class="card">
+<h2>Spiel vorbereiten</h2>
+<p class="sub">Legt die Namen fest und bestimmt die Imposter-Anzahl.</p>
+<label for="count">ANZAHL DER SPIELER</label>
+<select id="count">
+<option>3</option><option>4</option><option>5</option>
+<option>6</option><option>7</option><option>8</option>
+<option>9</option><option>10</option><option>11</option>
+<option>12</option><option>13</option><option>14</option>
+<option>15</option><option>16</option><option>17</option>
+<option>18</option><option>19</option><option selected>20</option>
+</select>
+
+<label>SPIELERNAMEN</label>
+<div id="names" class="namegrid"></div>
+
+<label for="imposterCount">ANZAHL IMPOSTER</label>
+<select id="imposterCount"></select>
+<button type="button" class="btn random" id="randomMode">🎲 Zufällige Anzahl</button>
+<p class="note" id="modeNote">Feste Anzahl: Du bestimmst, wie viele Imposter mitspielen.</p>
+<p class="note">Maximal möglich: <strong id="maxImposters">19</strong> Imposter. Mindestens ein Spieler bleibt normal.</p>
+<button class="btn" id="start">Spiel starten →</button>
+<div id="setupError" class="error"></div>
+</section>
+
+<section id="game" class="card hidden">
+<div class="pill"><i class="dot"></i> GEHEIME ROLLEN</div>
+<h2 id="roundTitle" style="margin-top:15px">Runde 1</h2>
+<p class="sub">Gebt das Gerät reihum weiter. Jeder sieht seine Karte einmal. Imposter erhalten denselben Tipp.</p>
+<div id="playerList"></div>
+<button class="btn purple" id="toVote">Zur Abstimmung →</button>
+<button class="btn secondary" id="editFromGame">Setup bearbeiten</button>
+</section>
+
+<section id="vote" class="card hidden">
+<div class="pill"><i class="dot"></i> ABSTIMMUNG</div>
+<h2 style="margin-top:15px">Wem vertraust du nicht?</h2>
+<p class="sub">Wählt gemeinsam eine Person, die ihr für einen Imposter haltet.</p>
+<div id="voteList"></div>
+<div id="voteError" class="error"></div>
+<button class="btn" id="showResult">Ergebnis anzeigen →</button>
+<button class="btn secondary" id="backGame">Zurück zu den Rollen</button>
+</section>
+
+<section id="result" class="card hidden">
+<div class="pill"><i class="dot"></i> RUNDE AUSGEWERTET</div>
+<div class="result-mark" id="resultEmoji">🎯</div>
+<h2 id="resultTitle" style="text-align:center">Die Auflösung</h2>
+<p class="sub" style="text-align:center">Jetzt kommt die Wahrheit ans Licht.</p>
+<div id="resultText"></div>
+<button class="btn purple" id="nextRound">Noch eine Runde ↻</button>
+<button class="btn secondary" id="editFromResult">Spieler ändern</button>
+</section>
+<div class="footer">Spielt fair. Verratet keine geheimen Rollen.</div>
+</main>
+
+<script>
+"use strict";
+
+const WORDS={
+essen:["Pizza","Sushi","Burger","Spaghetti","Eiscreme","Pfannkuchen","Tacos","Pommes","Popcorn","Käsekuchen","Limonade","Döner","Wassermelone","Schokolade"],
+tiere:["Löwe","Pinguin","Elefant","Delfin","Katze","Fuchs","Giraffe","Schildkröte","Känguru","Eule","Hai","Koala","Flamingo","Waschbär"],
+orte:["Schule","Flughafen","Strand","Kino","Krankenhaus","Bibliothek","Zoo","Bahnhof","Museum","Campingplatz","Supermarkt","Schwimmbad","Restaurant","Stadion"],
+berufe:["Arzt","Lehrer","Pilot","Koch","Polizist","Feuerwehrmann","Astronaut","Friseur","Tierarzt","Schauspieler","Fotograf","Bäcker","Detektiv","Architekt"],
+alltag:["Zahnbürste","Regenschirm","Kopfhörer","Rucksack","Sonnenbrille","Wecker","Kühlschrank","Schlüssel","Fernbedienung","Decke","Kerze","Fahrrad","Koffer","Luftmatratze"],
+sport:["Fußball","Tennis","Basketball","Schwimmen","Skifahren","Boxen","Volleyball","Golf","Skateboard","Yoga","Handball","Surfen","Badminton","Leichtathletik"],
+filme:["Superheld","Zauberschule","Weltraumreise","Geisterhaus","Zeitmaschine","Geheimagent","Dinosaurier","Märchenwald","Unterwasserwelt","Roboter","Piraten","Detektivgeschichte"]
+};
+
+const HINTS={
+essen:{"Pizza":"Ofen","Sushi":"Japan","Burger":"Brötchen","Spaghetti":"Nudeln","Eiscreme":"Kälte","Pfannkuchen":"Teig","Tacos":"Mexiko","Pommes":"Kartoffel","Popcorn":"Kino","Käsekuchen":"Kuchen","Limonade":"Zitrone","Döner":"Fladenbrot","Wassermelone":"Sommer","Schokolade":"Kakao"},
+tiere:{"Löwe":"Savanne","Pinguin":"Antarktis","Elefant":"Rüssel","Delfin":"Meer","Katze":"Schnurren","Fuchs":"Wald","Giraffe":"Hals","Schildkröte":"Panzer","Känguru":"Australien","Eule":"Nacht","Hai":"Zähne","Koala":"Eukalyptus","Flamingo":"Rosa","Waschbär":"Maske"},
+orte:{"Schule":"Lernen","Flughafen":"Fliegen","Strand":"Sand","Kino":"Leinwand","Krankenhaus":"Medizin","Bibliothek":"Bücher","Zoo":"Tiere","Bahnhof":"Züge","Museum":"Ausstellung","Campingplatz":"Zelt","Supermarkt":"Einkaufen","Schwimmbad":"Becken","Restaurant":"Speisekarte","Stadion":"Sport"},
+berufe:{"Arzt":"Medizin","Lehrer":"Schule","Pilot":"Flugzeug","Koch":"Küche","Polizist":"Uniform","Feuerwehrmann":"Feuer","Astronaut":"Weltraum","Friseur":"Haare","Tierarzt":"Tiere","Schauspieler":"Bühne","Fotograf":"Kamera","Bäcker":"Brot","Detektiv":"Spur","Architekt":"Gebäude"},
+alltag:{"Zahnbürste":"Zähne","Regenschirm":"Regen","Kopfhörer":"Musik","Rucksack":"Rücken","Sonnenbrille":"Sonne","Wecker":"Morgen","Kühlschrank":"Kälte","Schlüssel":"Schloss","Fernbedienung":"Knöpfe","Decke":"Wärme","Kerze":"Flamme","Fahrrad":"Pedale","Koffer":"Reise","Luftmatratze":"Luft"},
+sport:{"Fußball":"Tor","Tennis":"Schläger","Basketball":"Korb","Schwimmen":"Becken","Skifahren":"Schnee","Boxen":"Handschuhe","Volleyball":"Netz","Golf":"Loch","Skateboard":"Rollen","Yoga":"Dehnung","Handball":"Torwurf","Surfen":"Wellen","Badminton":"Federball","Leichtathletik":"Laufen"},
+filme:{"Superheld":"Kräfte","Zauberschule":"Magie","Weltraumreise":"Sterne","Geisterhaus":"Spuk","Zeitmaschine":"Vergangenheit","Geheimagent":"Mission","Dinosaurier":"Urzeit","Märchenwald":"Zauber","Unterwasserwelt":"Ozean","Roboter":"Maschine","Piraten":"Schatz","Detektivgeschichte":"Rätsel"}
+};
+
+const $=id=>document.getElementById(id);
+let players=[],imposters=[],word="",round=1,chosenVote=null,categoryUsed="",openedRoles=new Set(),randomImposterMode=false;
+
+function show(section){
+["setup","game","vote","result"].forEach(id=>$(id).classList.toggle("hidden",id!==section));
+window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function renderNames(oldNames=[]){
+const count=Number($("count").value);
+$("names").innerHTML="";
+for(let i=0;i<count;i++){
+const input=document.createElement("input");
+input.id="name"+i;input.maxLength=24;
+input.placeholder="Spieler "+(i+1);
+input.value=oldNames[i]||"";
+input.setAttribute("aria-label","Name Spieler "+(i+1));
+$("names").append(input);
+}
+}
+
+function getNames(){
+return Array.from({length:Number($("count").value)},(_,i)=>
+$("name"+i).value.trim()||"Spieler "+(i+1)
+);
+}
+
+function updateImposterOptions(){
+const count=Number($("count").value);
+const select=$("imposterCount");
+const previous=Number(select.value)||1;
+select.innerHTML="";
+for(let i=1;i<count;i++){
+const option=document.createElement("option");
+option.value=String(i);
+option.textContent=i+" Imposter";
+select.append(option);
+}
+select.value=String(Math.min(previous,count-1));
+select.disabled=randomImposterMode;
+$("maxImposters").textContent=count-1;
+}
+
+function setRandomMode(enabled){
+randomImposterMode=enabled;
+$("randomMode").classList.toggle("active",enabled);
+$("randomMode").setAttribute("aria-pressed",String(enabled));
+$("imposterCount").disabled=enabled;
+$("modeNote").textContent=enabled
+?"Zufallsmodus: Bei jeder neuen Runde wird die Anzahl neu ausgelost – mindestens 1 und höchstens Spieleranzahl minus 1."
+:"Feste Anzahl: Du bestimmst, wie viele Imposter mitspielen.";
+}
+
+function startGame(){
+const names=getNames();
+const n=names.length;
+const numImposters=randomImposterMode
+?1+Math.floor(Math.random()*(n-1))
+:Number($("imposterCount").value);
+
+if(numImposters<1||numImposters>=n){
+$("setupError").textContent="Es muss mindestens eine Person geben, die kein Imposter ist.";
+return;
+}
+
+players=names;
+openedRoles=new Set();
+chosenVote=null;
+$("setupError").textContent="";
+
+// Zufällige, eindeutige Imposter-Positionen.
+const indexes=Array.from({length:n},(_,i)=>i);
+for(let i=indexes.length-1;i>0;i--){
+const j=Math.floor(Math.random()*(i+1));
+[indexes[i],indexes[j]]=[indexes[j],indexes[i]];
+}
+imposters=indexes.slice(0,numImposters).sort((a,b)=>a-b);
+
+const categories=Object.keys(WORDS);
+categoryUsed=categories[Math.floor(Math.random()*categories.length)];
+const pool=WORDS[categoryUsed];
+word=pool[Math.floor(Math.random()*pool.length)];
+
+$("roundTitle").textContent="Runde "+round+" · "+numImposters+" Imposter";
+$("playerList").innerHTML="";
+
+players.forEach((name,i)=>{
+const card=document.createElement("div");
+card.className="player-card";
+const head=document.createElement("div");
+head.className="player-head";
+const label=document.createElement("span");
+label.textContent=name;
+const status=document.createElement("small");
+status.textContent="ROLLE VERDECKT";
+head.append(label,status);
+
+const button=document.createElement("button");
+button.className="btn secondary reveal";
+button.type="button";
+button.textContent="Meine Rolle ansehen";
+
+const isImposter=imposters.includes(i);
+const secret=document.createElement("div");
+secret.className="secret hidden"+(isImposter?" imposter":"");
+const secretWord=document.createElement("div");
+secretWord.className="word";
+secretWord.textContent=isImposter?"DU BIST IMPOSTER":word;
+
+const description=document.createElement("p");
+description.textContent=isImposter
+?"Dein Tipp: "+(HINTS[categoryUsed]?.[word]||"Geheimnis")
+:"Merke dir das Wort und gib keine zu eindeutigen Hinweise.";
+secret.append(secretWord,description);
+
+button.addEventListener("click",()=>{
+if(openedRoles.has(i))return;
+openedRoles.add(i);
+secret.classList.remove("hidden");
+button.textContent="Rolle schließen";
+status.textContent="NUR FÜR DICH";
+button.onclick=null;
+button.addEventListener("click",()=>{
+secret.classList.add("hidden");
+button.textContent="Bereits angesehen – gesperrt";
+button.disabled=true;
+status.textContent="BEREITS ANGESEHEN";
+},{once:true});
+});
+card.append(head,button,secret);
+$("playerList").append(card);
+});
+show("game");
+}
+
+function voteScreen(){
+$("voteList").innerHTML="";
+chosenVote=null;
+$("voteError").textContent="";
+players.forEach((name,i)=>{
+const button=document.createElement("button");
+button.className="vote-option";
+button.type="button";
+const left=document.createElement("span");
+left.textContent=name;
+const right=document.createElement("span");
+right.textContent="Auswählen →";
+button.append(left,right);
+button.addEventListener("click",()=>{
+chosenVote=i;
+document.querySelectorAll("#voteList .vote-option").forEach(el=>el.classList.remove("selected"));
+button.classList.add("selected");
+right.textContent="Ausgewählt ✓";
+});
+$("voteList").append(button);
+});
+show("vote");
+}
+
+function revealResult(){
+if(chosenVote===null){
+$("voteError").textContent="Bitte wählt zuerst eine Person aus.";
+return;
+}
+const caught=imposters.includes(chosenVote);
+$("resultEmoji").textContent=caught?"🎯":"❌";
+$("resultTitle").textContent=caught?"Imposter erwischt!":"Falscher Verdacht!";
+$("resultText").innerHTML="";
+const makeBox=(label,value)=>{
+const box=document.createElement("div");
+box.className="resultbox";
+const caption=document.createElement("div");
+caption.textContent=label;
+const strong=document.createElement("strong");
+strong.textContent=value;
+box.append(caption,strong);
+return box;
+};
+$("resultText").append(
+makeBox("ABGESTIMMT WURDE FÜR",players[chosenVote]),
+makeBox("IMPOSTER IN DIESER RUNDE ("+imposters.length+")",imposters.map(i=>players[i]).join(", ")),
+makeBox("GEHEIMES WORT",word),
+makeBox("KATEGORIE",categoryUsed)
+);
+show("result");
+}
+
+function editSetup(){
+const oldNames=players.length?players:getNames();
+$("count").value=String(oldNames.length);
+renderNames(oldNames);
+updateImposterOptions();
+show("setup");
+}
+
+$("count").addEventListener("change",()=>{
+const oldNames=getNames();
+renderNames(oldNames);
+updateImposterOptions();
+$("setupError").textContent="";
+});
+$("randomMode").addEventListener("click",()=>setRandomMode(!randomImposterMode));
+$("start").addEventListener("click",startGame);
+$("toVote").addEventListener("click",voteScreen);
+$("showResult").addEventListener("click",revealResult);
+$("backGame").addEventListener("click",()=>show("game"));
+$("editFromGame").addEventListener("click",editSetup);
+$("editFromResult").addEventListener("click",editSetup);
+$("nextRound").addEventListener("click",()=>{
+round++;
+startGame();
+});
+
+renderNames();
+updateImposterOptions();
+setRandomMode(false);
+</script>
+</body>
+</html>
